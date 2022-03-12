@@ -13,15 +13,19 @@ export default function handler(event, controls) {
           break
         // Movement
         case 'w':
+        case 'ArrowUp':
           controls.move('top')
           break
         case 'd':
+        case 'ArrowRight':
           controls.move('right')
           break
         case 's':
+        case 'ArrowDown':
           controls.move('bottom')
           break
         case 'a':
+        case 'ArrowLeft':
           controls.move('left')
           break
         default:
@@ -32,7 +36,6 @@ export default function handler(event, controls) {
       break
     case 'contextmenu':
       event.preventDefault()
-      controls.head.goToParent()
       break
     default:
   }

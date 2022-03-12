@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Cell, { cellAt, moveCell } from './Cell'
 
 function mod(x, y) {
@@ -23,8 +23,9 @@ export default function useGame(n = 1) {
     setHead(cells[active].parent)
   }
 
+  useEffect(() => focus())
+
   const move = (dir) => {
-    focus()
     const directionMap = {
       top: { name: 'top', dx: 0, dy: -1 },
       right: { name: 'right', dx: 1, dy: 0 },
@@ -35,38 +36,56 @@ export default function useGame(n = 1) {
     setCells(newCells)
   }
 
-  const prevHead = () => setHead((h) => mod(h - 1, cells.length))
-  const nextHead = () => setHead((h) => mod(h + 1, cells.length))
-
   const apply = (index, func, allowRoot = true) => {
     if (index === -1) {
-      if (allowRoot || head !== 0) func(head)
+      if (allowRoot || owner !== undefined) func(head)
       return
     }
     const offset = getOffset(size)
-    const [x, y] = fldmod(index, size).map((v) => v - offset)
+    const [y, x] = fldmod(index, size).map((v) => v - offset)
     const c = cellAt(cells, head, x, y)
-    if (allowRoot || c !== 0) func(c)
+    if (allowRoot || cells[c].owner !== undefined) func(c)
   }
 
-  const goToParent = () => {
-    const p = cells[head].parent
-    if (p !== null) setHead(p)
+  const setFirstChildActive = (c) => {
+    const f = cells[c].children?.[0]
+    if (f && cells[f].owner !== undefined) setActive(f)
+  }
+
+  const activable = cells.filter((cell) => cell.owner !== undefined).map((cell) => cell._id)
+
+  const prev = () => {
+    const index = activable.indexOf(active)
+    const before = mod(index - 1, activable.length)
+    setActive(activable[before])
+  }
+
+  const next = () => {
+    const index = activable.indexOf(active)
+    const after = mod(index + 1, activable.length)
+    setActive(activable[after])
   }
 
   return {
-    board: { owner, pieces, size, currentPiece: head, activePiece },
+    board: {
+      pieces,
+      size,
+      active: { owner: cells[active].owner, index: active },
+      head: { owner: cells[head].owner, index: head },
+      activePiece,
+    },
     controls: {
-      head: { prev: prevHead, next: nextHead, goToParent, focus },
+      prev,
+      next,
       activate: (index) => apply(index, setActive, false),
-      enter: (index) => apply(index, setHead),
+      enter: (index) => apply(index, setFirstChildActive),
       move,
     },
   }
 }
 
 function createCells(count) {
-  const root = new Cell({ owner: undefined })
+  const root = new Cell()
   const cells = [root]
   for (let index = 1; index <= count; index++) {
     const last = cells[index - 1]

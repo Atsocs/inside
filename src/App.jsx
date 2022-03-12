@@ -1,37 +1,40 @@
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons'
-import { Button, ButtonGroup, Center, IconButton, Text, useEventListener, VStack } from '@chakra-ui/react'
+import { Button, ButtonGroup, Center, IconButton, Text, useEventListener, VStack, chakra } from '@chakra-ui/react'
 import Board from './Board'
 import handler from './handler'
 import useGame from './useGame'
+import { colors } from './theme'
+import { stopPropagation } from './utils'
 import './utils.css'
-
-const stopPropagation = (cb) => {
-  return (event, ...others) => {
-    event.stopPropagation()
-    cb(event, ...others)
-  }
-}
 
 export default function App() {
   const game = useGame(10)
   const { board, controls } = game
-  const { owner, pieces, size, activePiece, currentPiece } = board
+  const { active, head } = board
 
   const eventHandler = (event) => handler(event, controls)
   useEventListener('keydown', eventHandler)
   useEventListener('click', eventHandler)
   useEventListener('contextmenu', eventHandler)
 
-  const text = currentPiece === 0 ? '' : `Piece ${currentPiece}`
+  const textIntensity = '.500'
+  const Title = (
+    <Button disabled _disabled={{ cursor: 'auto' }} _focus={{ boxShadow: 'none' }}>
+      <Text fontSize={'lg'} color="black">
+        <chakra.span color={colors[active.owner] + textIntensity}>{'Piece ' + active.index}</chakra.span>
+        <chakra.span> inside </chakra.span>
+        <chakra.span color={colors[head.owner] + textIntensity}>{'Piece ' + head.index}</chakra.span>
+      </Text>
+    </Button>
+  )
+
   const Controls = (
     <ButtonGroup size="lg" isAttached variant="outline" colorScheme="main">
-      <IconButton onClick={stopPropagation(controls.head.prev)} _focus={{ boxShadow: 'none' }}>
+      <IconButton onClick={stopPropagation(controls.prev)} _focus={{ boxShadow: 'none' }}>
         <ArrowBackIcon />
       </IconButton>
-      <Button onClick={stopPropagation(controls.head.focus)} _focus={{ boxShadow: 'none' }} w={150}>
-        <Text fontSize={'xl'}>{text}</Text>
-      </Button>
-      <IconButton onClick={stopPropagation(controls.head.next)} _focus={{ boxShadow: 'none' }}>
+      {Title}
+      <IconButton onClick={stopPropagation(controls.next)} _focus={{ boxShadow: 'none' }}>
         <ArrowForwardIcon />
       </IconButton>
     </ButtonGroup>
@@ -41,14 +44,7 @@ export default function App() {
     <Center minW="100vw" minH="100vh" bg="main.100" cursor="pointer">
       <VStack gap={10}>
         {Controls}
-        <Board
-          size={size}
-          owner={owner}
-          pieces={pieces}
-          activate={controls.activate}
-          activePiece={activePiece}
-          enter={controls.enter}
-        />
+        <Board board={board} controls={controls} />
       </VStack>
     </Center>
   )

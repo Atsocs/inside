@@ -40,3 +40,9 @@ export const theme = extendTheme({
     },
   },
 })
+
+export const colors = {
+  undefined: 'main',
+  0: 'orange',
+  1: 'blue',
+}

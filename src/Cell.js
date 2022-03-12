@@ -3,7 +3,7 @@ export default class Cell {
     const { owner, size, x, y } = props || {}
     this._id = Cell.incrementCount()
     this.owner = owner
-    this.size = size || 3
+    this.size = size || 7
     this.parent = null
     this.children = []
     this.x = x || 0
@@ -15,6 +15,15 @@ export default class Cell {
     child.parent = this._id
     this.children.push(child._id)
     return child
+  }
+
+  addParent(cells, props) {
+    if (this.parent !== null) return this.parent
+    const parent = new Cell(props)
+    parent.children.push(this._id)
+    this.parent = parent._id
+    cells.push(parent)
+    return parent
   }
 
   inside(x, y) {
@@ -41,6 +50,17 @@ export default class Cell {
     return (this.parent = newParent)
   }
 
+  getExitPoint(direction) {
+    const r = Math.floor(this.size / 2)
+    const exitMap = {
+      top: [0, -r],
+      right: [r, 0],
+      bottom: [0, r],
+      left: [-r, 0],
+    }
+    return exitMap[direction.name]
+  }
+
   getEntryPoint(direction) {
     const r = Math.floor(this.size / 2)
     const entryMap = {
@@ -51,32 +71,65 @@ export default class Cell {
     }
     return entryMap[direction.name]
   }
+
+  setPosition(newPosition) {
+    const [x, y] = newPosition
+    this.x = x
+    this.y = y
+    return [this.x, this.y]
+  }
+
   move(cells, direction) {
     const { dx, dy } = direction
     const next = [this.x + dx, this.y + dy]
-    if (this.inside(...next)) {
+    const isNextInside = this.inside(...next)
+
+    if (isNextInside) {
       const c = cellAt(cells, this.parent, ...next)
-      if (c === undefined) {
-        const [x, y] = next
-        this.x = x
-        this.y = y
-        return
-      }
+      if (c === undefined) return this.setPosition(next)
+
       // c is defined, so next is not empty
       this.setParent(cells, c)
       const [x, y] = cells[c].getEntryPoint(direction)
-      this.x = x
-      this.y = y
+      this.setPosition([x, y])
       return this.move(cells, direction)
     }
-    // next is outside
-    return
+
+    const [exitX, exitY] = this.getExitPoint(direction)
+    if (this.x !== exitX || this.y !== exitY) return null
+
+    const p = this.parent
+    if (cells[p].parent === null) {
+      if (Cell.flags.allowParentAddition) cells[p].addParent(cells)
+      else return null
+    }
+
+    const pp = cells[p].parent
+
+    const currentPosition = [this.x, this.y]
+    const currentParent = this.parent
+
+    this.setParent(cells, pp)
+    const { x, y } = cells[p]
+    this.setPosition([x, y])
+
+    const newPosition = this.move(cells, direction)
+
+    if (newPosition === null) {
+      this.setParent(currentParent)
+      this.setPosition(currentPosition)
+      return null
+    }
+
+    return newPosition
   }
 
   static incrementCount() {
     if (!this.count) this.count = 0
     return this.count++
   }
+
+  static flags = { allowParentAddition: false }
 }
 
 export function moveCell(cells, id, direction) {
@@ -89,7 +142,7 @@ export function moveCell(cells, id, direction) {
 export function cellAt(cells, parent, X, Y) {
   const children = cells[parent].children
   return children.find((c) => {
-    const { x, y } = cells[c]
-    return x === X && y === Y
+    const { x, y, owner } = cells[c]
+    return owner !== undefined && x === X && y === Y
   })
 }
