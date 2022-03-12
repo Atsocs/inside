@@ -3,7 +3,7 @@ export default class Cell {
     const { owner, size, x, y } = props || {}
     this._id = Cell.incrementCount()
     this.owner = owner
-    this.size = size || 3
+    this.size = size || 5
     this.parent = null
     this.children = []
     this.x = x || 0

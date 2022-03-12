@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import Cell, { cellAt, moveCell } from './Cell'
 
 function mod(x, y) {
@@ -12,7 +12,7 @@ function fldmod(x, y) {
 export default function useGame(n = 1) {
   const [cells, setCells] = useState(() => createCells(n))
   const [head, setHead] = useState(0)
-  const [active, setActive] = useState(1)
+  const [active, setActive] = useState(n)
 
   const owner = cells[head].owner
   const size = cells[head].size
