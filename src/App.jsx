@@ -20,7 +20,7 @@ export default function App() {
   const textIntensity = '.500'
   const Title = (
     <Button disabled _disabled={{ cursor: 'auto' }} _focus={{ boxShadow: 'none' }}>
-      <Text fontSize={'lg'} color="black">
+      <Text color="main.900">
         <chakra.span color={colors[active.owner] + textIntensity}>{'Piece ' + active.index}</chakra.span>
         <chakra.span> inside </chakra.span>
         <chakra.span color={colors[head.owner] + textIntensity}>{'Piece ' + head.index}</chakra.span>

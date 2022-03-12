@@ -1,3 +1,4 @@
+import { ArrowBackIcon, ArrowDownIcon, ArrowForwardIcon, ArrowUpIcon } from '@chakra-ui/icons'
 import { Center, Circle, SimpleGrid } from '@chakra-ui/react'
 import { colors } from './theme'
 
@@ -28,6 +29,16 @@ export default function Board({ board, controls }) {
   const color = colors[owner] + '.500'
   const borderRadius = 'full'
 
+  const r = Math.floor(size / 2)
+
+  const Arrow = ({ index, ...props }) => {
+    if (index === r) return <ArrowUpIcon {...props} />
+    if (index === size * size - 1 - r) return <ArrowDownIcon {...props} />
+    if (index === size * r) return <ArrowBackIcon {...props} />
+    if (index === size * (r + 1) - 1) return <ArrowForwardIcon {...props} />
+    return null
+  }
+
   return (
     <Circle
       size="xl"
@@ -47,6 +58,9 @@ export default function Board({ board, controls }) {
       <SimpleGrid columns={size} spacing={1} w="100%" h="100%" borderRadius={borderRadius} className="masked">
         {[...Array(size * size).keys()].map((index) => (
           <Cell key={index} isInside={pieces[index].inside}>
+            <Center position="absolute">
+              <Arrow index={index} boxSize={'50%'} color="main.800" />
+            </Center>
             <Piece
               owner={pieces[index]?.owner}
               onRightClick={(e) => handleClick(e, index)}
@@ -62,7 +76,11 @@ export default function Board({ board, controls }) {
 
 function Cell({ children, isInside }) {
   const bg = 'main' + (isInside ? '.300' : '.100')
-  return <Center bg={bg}>{children}</Center>
+  return (
+    <Center bgColor={bg} position="relative">
+      {children}
+    </Center>
+  )
 }
 
 function Piece({ owner, onClick, onRightClick, isActive }) {
@@ -81,6 +99,7 @@ function Piece({ owner, onClick, onRightClick, isActive }) {
       cursor="pointer"
       outlineOffset={5}
       outline={isActive ? '2px dashed' : undefined}
+      zIndex={1}
     />
   )
 }
