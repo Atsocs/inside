@@ -38,7 +38,7 @@ export default function App() {
   )
 
   return (
-    <Center minW="100vw" minH="100vh" bg="main.100">
+    <Center minW="100vw" minH="100vh" bg="main.100" cursor="pointer">
       <VStack gap={10}>
         {Controls}
         <Board

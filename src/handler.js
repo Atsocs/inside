@@ -32,7 +32,7 @@ export default function handler(event, controls) {
       break
     case 'contextmenu':
       event.preventDefault()
-      // controls.head.goToParent()
+      controls.head.goToParent()
       break
     default:
   }

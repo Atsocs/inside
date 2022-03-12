@@ -18,8 +18,8 @@ export default function useGame(n = 1) {
   const size = cells[head].size
   const pieces = getPieces(cells, cells[head].children, size)
 
-  const prevHead = () => setHead((h) => mod(h - 1, n))
-  const nextHead = () => setHead((h) => mod(h + 1, n))
+  const prevHead = () => setHead((h) => mod(h - 1, cells.length))
+  const nextHead = () => setHead((h) => mod(h + 1, cells.length))
 
   const apply = (index, func, allowRoot = true) => {
     if (index === -1) {
@@ -56,7 +56,7 @@ export default function useGame(n = 1) {
 function createCells(count) {
   const root = new Cell({ owner: undefined })
   const cells = [root]
-  for (let index = 1; index < count; index++) {
+  for (let index = 1; index <= count; index++) {
     const last = cells[index - 1]
     const c = last.addChild({ owner: index % 2 })
     cells.push(c)
@@ -72,7 +72,6 @@ function getPieces(cells, children, size) {
   const pieces = [...Array(size).keys()].map((X) =>
     [...Array(size).keys()].map((Y) => {
       const [x, y] = [X - offset, Y - offset]
-      console.log('x,y', x, y)
       return { owner: undefined, inside: x * x + y * y <= (size * size * scale) / 4 }
     })
   )

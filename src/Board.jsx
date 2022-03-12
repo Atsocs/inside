@@ -32,8 +32,9 @@ export default function Board({ size = 3, owner, pieces = [], activate, activePi
       borderWidth={20}
       borderStyle="solid"
       borderColor="currentcolor"
-      onClick={handleClick}
-      onContextMenu={handleClick}
+      cursor="auto"
+      onClick={(e) => handleClick(e)}
+      onContextMenu={(e) => handleClick(e)}
       bgColor="main.600"
       borderRadius={borderRadius}
       outlineOffset={5}
@@ -56,14 +57,12 @@ export default function Board({ size = 3, owner, pieces = [], activate, activePi
 }
 
 function Cell({ children, isInside }) {
-  console.log('isInside', isInside)
   const bg = 'main' + (isInside ? '.300' : '.100')
   return <Center bg={bg}>{children}</Center>
 }
 
 function Piece({ owner, onClick, onRightClick, isActive }) {
   if (owner === undefined) return null
-  console.log('owner', owner)
   const color = colors[owner] + '.400'
   const w = '80%'
   return (
