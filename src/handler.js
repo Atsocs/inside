@@ -1,4 +1,5 @@
 export default function handler(event, controls) {
+  event.stopPropagation()
   const { type, key } = event
   switch (type) {
     case 'keydown':
@@ -25,6 +26,13 @@ export default function handler(event, controls) {
           break
         default:
       }
+      break
+    case 'click':
+      controls.activate(-1)
+      break
+    case 'contextmenu':
+      event.preventDefault()
+      // controls.head.goToParent()
       break
     default:
   }

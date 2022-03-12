@@ -12,7 +12,7 @@ function fldmod(x, y) {
 export default function useGame(n = 1) {
   const [cells, setCells] = useState(() => createCells(n))
   const [head, setHead] = useState(0)
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState(1)
 
   const owner = cells[head].owner
   const size = cells[head].size
@@ -21,21 +21,40 @@ export default function useGame(n = 1) {
   const prevHead = () => setHead((h) => mod(h - 1, n))
   const nextHead = () => setHead((h) => mod(h + 1, n))
 
-  const activate = (index) => {
+  const apply = (index, func, allowRoot = true) => {
+    if (index === -1) {
+      if (allowRoot || head !== 0) func(head)
+      return
+    }
     const offset = getOffset(size)
     const [x, y] = fldmod(index, size).map((v) => v - offset)
-    setActive(cellAt(cells, head, x, y))
+    const c = cellAt(cells, head, x, y)
+    if (allowRoot || c !== 0) func(c)
+  }
+
+  const goToParent = () => {
+    const p = cells[head].parent
+    if (p !== null) setHead(p)
+  }
+
+  const focus = () => {
+    setHead(cells[active].parent)
   }
 
   const activePiece = getActivePiece(cells, head, active, size)
+
   return {
     board: { owner, pieces, size, currentPiece: head, activePiece },
-    controls: { head: { prev: prevHead, next: nextHead }, activate },
+    controls: {
+      head: { prev: prevHead, next: nextHead, goToParent, focus },
+      activate: (index) => apply(index, setActive, false),
+      enter: (index) => apply(index, setHead),
+    },
   }
 }
 
 function createCells(count) {
-  const root = new Cell({ owner: 0 })
+  const root = new Cell({ owner: undefined })
   const cells = [root]
   for (let index = 1; index < count; index++) {
     const last = cells[index - 1]
@@ -47,12 +66,21 @@ function createCells(count) {
 }
 
 function getPieces(cells, children, size) {
-  const pieces = [...Array(size).keys()].map((x) => [...Array(size).keys()].map((y) => undefined))
   const offset = getOffset(size)
+  const scale = 0.95
+
+  const pieces = [...Array(size).keys()].map((X) =>
+    [...Array(size).keys()].map((Y) => {
+      const [x, y] = [X - offset, Y - offset]
+      console.log('x,y', x, y)
+      return { owner: undefined, inside: x * x + y * y <= (size * size * scale) / 4 }
+    })
+  )
 
   for (const c of children) {
     const { x, y, owner } = cells[c]
-    pieces[x + offset][y + offset] = owner
+    const [X, Y] = [x + offset, y + offset]
+    pieces[X][Y].owner = owner
   }
 
   return pieces.flat()
