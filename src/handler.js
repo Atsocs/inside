@@ -13,16 +13,16 @@ export default function handler(event, controls) {
           break
         // Movement
         case 'w':
-          console.log('top')
+          controls.move('top')
           break
         case 'd':
-          console.log('right')
+          controls.move('right')
           break
         case 's':
-          console.log('bottom')
+          controls.move('bottom')
           break
         case 'a':
-          console.log('left')
+          controls.move('left')
           break
         default:
       }

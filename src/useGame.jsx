@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Cell from './Cell'
+import Cell, { cellAt, moveCell } from './Cell'
 
 function mod(x, y) {
   return ((x % y) + y) % y
@@ -16,7 +16,24 @@ export default function useGame(n = 1) {
 
   const owner = cells[head].owner
   const size = cells[head].size
-  const pieces = getPieces(cells, cells[head].children, size)
+  const pieces = getPieces(cells, head, cells[head].children, size)
+  const activePiece = getActivePiece(cells, head, active, size)
+
+  const focus = () => {
+    setHead(cells[active].parent)
+  }
+
+  const move = (dir) => {
+    focus()
+    const directionMap = {
+      top: { name: 'top', dx: 0, dy: -1 },
+      right: { name: 'right', dx: 1, dy: 0 },
+      bottom: { name: 'bottom', dx: 0, dy: 1 },
+      left: { name: 'left', dx: -1, dy: 0 },
+    }
+    const newCells = moveCell(cells, active, directionMap[dir])
+    setCells(newCells)
+  }
 
   const prevHead = () => setHead((h) => mod(h - 1, cells.length))
   const nextHead = () => setHead((h) => mod(h + 1, cells.length))
@@ -37,18 +54,13 @@ export default function useGame(n = 1) {
     if (p !== null) setHead(p)
   }
 
-  const focus = () => {
-    setHead(cells[active].parent)
-  }
-
-  const activePiece = getActivePiece(cells, head, active, size)
-
   return {
     board: { owner, pieces, size, currentPiece: head, activePiece },
     controls: {
       head: { prev: prevHead, next: nextHead, goToParent, focus },
       activate: (index) => apply(index, setActive, false),
       enter: (index) => apply(index, setHead),
+      move,
     },
   }
 }
@@ -65,21 +77,20 @@ function createCells(count) {
   return cells
 }
 
-function getPieces(cells, children, size) {
+function getPieces(cells, head, children, size) {
   const offset = getOffset(size)
-  const scale = 0.95
 
-  const pieces = [...Array(size).keys()].map((X) =>
-    [...Array(size).keys()].map((Y) => {
+  const pieces = [...Array(size).keys()].map((Y) =>
+    [...Array(size).keys()].map((X) => {
       const [x, y] = [X - offset, Y - offset]
-      return { owner: undefined, inside: x * x + y * y <= (size * size * scale) / 4 }
+      return { owner: undefined, inside: cells[head].inside(x, y) }
     })
   )
 
   for (const c of children) {
     const { x, y, owner } = cells[c]
     const [X, Y] = [x + offset, y + offset]
-    pieces[X][Y].owner = owner
+    pieces[Y][X].owner = owner
   }
 
   return pieces.flat()
@@ -89,19 +100,11 @@ function getOffset(size) {
   return Math.floor(size / 2)
 }
 
-function cellAt(cells, parent, X, Y) {
-  const children = cells[parent].children
-  return children.find((c) => {
-    const { x, y } = cells[c]
-    return x === X && y === Y
-  })
-}
-
 function getActivePiece(cells, head, active, size) {
   const children = cells[head].children
   if (head === active) return -1
   if (!children.includes(active)) return undefined
   const { x, y } = cells[active]
   const offset = getOffset(size)
-  return (x + offset) * size + (y + offset)
+  return (y + offset) * size + (x + offset)
 }
